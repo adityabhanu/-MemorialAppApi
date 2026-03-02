@@ -63,14 +63,14 @@ public class MemorialFunctions
 
         try
         {
-            // Validate authorization header
-            var userId = JwtHelper.ExtractUserIdFromToken(req);
-            if (userId == Guid.Empty)
-            {
-                var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
-                await unauthorizedResponse.WriteAsJsonAsync(new { error = "Authorization token is required or invalid" });
-                return unauthorizedResponse;
-            }
+            //// Validate authorization header
+            //var userId = JwtHelper.ExtractUserIdFromToken(req);
+            //if (userId == Guid.Empty)
+            //{
+            //    var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+            //    await unauthorizedResponse.WriteAsJsonAsync(new { error = "Authorization token is required or invalid" });
+            //    return unauthorizedResponse;
+            //}
 
             if (!Guid.TryParse(id, out var memorialId))
             {

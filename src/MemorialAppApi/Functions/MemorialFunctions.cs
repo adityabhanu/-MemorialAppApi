@@ -30,20 +30,14 @@ public class MemorialFunctions
 
         try
         {
-            // Validate authorization header
             var userId = JwtHelper.ExtractUserIdFromToken(req);
-            if (userId == Guid.Empty)
-            {
-                var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
-                await unauthorizedResponse.WriteAsJsonAsync(new { error = "Authorization token is required or invalid" });
-                return unauthorizedResponse;
-            }
+            Guid? effectiveUserId = userId == Guid.Empty ? null : userId;
 
             var queryParams = System.Web.HttpUtility.ParseQueryString(req.Url.Query);
             int? page = int.TryParse(queryParams["page"], out var p) ? p : null;
             int? pageSize = int.TryParse(queryParams["pageSize"], out var ps) ? ps : null;
 
-            var query = new GetAllMemorialsQuery { UserId = userId, Page = page, PageSize = pageSize };
+            var query = new GetAllMemorialsQuery { UserId = effectiveUserId, Page = page, PageSize = pageSize };
             var result = await _mediator.Send(query);
 
             var response = req.CreateResponse(HttpStatusCode.OK);

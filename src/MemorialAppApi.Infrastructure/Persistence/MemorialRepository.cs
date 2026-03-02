@@ -58,7 +58,7 @@ public class MemorialRepository : IMemorialRepository
     }
 
     public async Task<IEnumerable<Memorial>> GetAllForUserAsync(
-        Guid userId,
+        Guid? userId,
         int? page,
         int? pageSize,
         CancellationToken cancellationToken = default)
@@ -79,7 +79,7 @@ public class MemorialRepository : IMemorialRepository
             return await _context.Memorials
                 .Include(m => m.Timelines!.Where(t => !t.IsDeleted))
                 .AsNoTracking()
-                .Where(m => m.CreatedBy == userId || m.IsPublic)
+                .Where(m => m.IsPublic || (userId.HasValue && m.CreatedBy == userId.Value))
                 .OrderByDescending(m => m.CreatedAt)
                 .ToListAsync(cancellationToken);
         }

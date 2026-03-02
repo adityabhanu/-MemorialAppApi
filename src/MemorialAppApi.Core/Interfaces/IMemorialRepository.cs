@@ -5,7 +5,7 @@ public interface IMemorialRepository
     Task<Memorial?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Memorial?> GetByIdWithTrackingAsync(Guid id, CancellationToken cancellationToken = default);
     Task<IEnumerable<Memorial>> GetAllAsync(int? page, int? pageSize, CancellationToken cancellationToken = default);
-    Task<IEnumerable<Memorial>> GetAllForUserAsync(Guid userId, int? page, int? pageSize, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Memorial>> GetAllForUserAsync(Guid? userId, int? page, int? pageSize, CancellationToken cancellationToken = default);
     Task<Memorial> CreateAsync(Memorial memorial, CancellationToken cancellationToken = default);
     Task<Memorial> UpdateAsync(Memorial memorial, CancellationToken cancellationToken = default);
     Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);

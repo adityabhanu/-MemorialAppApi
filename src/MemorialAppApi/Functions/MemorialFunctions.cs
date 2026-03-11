@@ -394,7 +394,7 @@ public class MemorialFunctions
         }
     }
 
-    /*[Function("DeleteMemorial")]
+    [Function("DeleteMemorial")]
     public async Task<HttpResponseData> DeleteMemorial(
         [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "memorials/{id}")] HttpRequestData req,
         FunctionContext executionContext,
@@ -431,5 +431,5 @@ public class MemorialFunctions
             await response.WriteAsJsonAsync(new { error = "An error occurred while deleting the memorial" });
             return response;
         }
-    }*/
+    }
 }

@@ -216,4 +216,49 @@ public class MemorialRepository : IMemorialRepository
             throw;
         }
     }
+
+    public async Task<IEnumerable<Memorial>> GetUpcomingMemorialsAsync(
+        Guid userId,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Memorials
+            .Where(m =>
+                !m.IsDeleted &&
+                m.CreatedBy == userId &&
+                (!string.IsNullOrEmpty(m.BirthDetails) || !string.IsNullOrEmpty(m.PassingDetails))
+            )
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> HasRecentContributionAsync(
+    Guid userId,
+    CancellationToken cancellationToken = default)
+    {
+        var oneWeekAgo = DateTime.UtcNow.AddDays(-7);
+
+        var memorialContribution = await _context.Memorials
+            .AnyAsync(m =>
+                m.CreatedBy == userId &&
+                (
+                    m.CreatedAt >= oneWeekAgo ||
+                    (m.UpdatedAt != null && m.UpdatedAt >= oneWeekAgo)
+                ),
+                cancellationToken);
+
+        if (memorialContribution)
+            return true;
+
+        var timelineContribution = await _context.MemorialTimelines
+            .AnyAsync(t =>
+                !t.IsDeleted &&
+                t.CreatedBy == userId &&
+                (
+                    t.CreatedAt >= oneWeekAgo ||
+                    (t.UpdatedAt != null && t.UpdatedAt >= oneWeekAgo)
+                ),
+                cancellationToken);
+
+        return timelineContribution;
+    }
 }

@@ -56,6 +56,7 @@ public class AddTimelineCommandHandler : IRequestHandler<AddTimelineCommand, Tim
                 existingTimeline.Video = videoJson;
                 existingTimeline.Audio = audioJson;
                 existingTimeline.UpdatedAt = DateTime.UtcNow;
+                existingTimeline.UpdatedBy = request.UpdatedBy;
                 result = await _memorialRepository.UpdateTimelineAsync(existingTimeline, cancellationToken);
                 _logger.LogInformation("Updated timeline entry {TimelineId} for memorial {MemorialId}", result.Id, request.MemorialId);
             }
@@ -78,6 +79,7 @@ public class AddTimelineCommandHandler : IRequestHandler<AddTimelineCommand, Tim
                 Video = videoJson,
                 Audio = audioJson,
                 CreatedAt = DateTime.UtcNow,
+                CreatedBy = request.CreatedBy,
                 IsDeleted = false
             };
             result = await _memorialRepository.CreateTimelineAsync(timeline, cancellationToken);

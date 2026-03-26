@@ -282,6 +282,9 @@ public class ApplicationDbContext : DbContext
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            entity.Property(e => e.CreatedBy);
+            entity.Property(e => e.UpdatedBy);
+
             // Relationships
             entity.HasOne(e => e.Memorial)
                 .WithMany(m => m.Timelines)

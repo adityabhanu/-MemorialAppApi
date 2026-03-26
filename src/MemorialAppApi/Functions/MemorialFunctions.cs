@@ -279,7 +279,9 @@ public class MemorialFunctions
                 Title = timelineEntry.Title,
                 Date = timelineEntry.Date,
                 Description = timelineEntry.Description,
-                Media = timelineEntry.Media
+                Media = timelineEntry.Media,
+                CreatedBy = userId != Guid.Empty ? userId : null,
+                UpdatedBy = userId != Guid.Empty ? userId : null
             };
 
             var result = await _mediator.Send(command);
@@ -429,6 +431,45 @@ public class MemorialFunctions
             _logger.LogError(ex, "Error deleting memorial with ID: {Id}", id);
             var response = req.CreateResponse(HttpStatusCode.InternalServerError);
             await response.WriteAsJsonAsync(new { error = "An error occurred while deleting the memorial" });
+            return response;
+        }
+    }
+
+    [Function("GetUpcomingMemorials")]
+    public async Task<HttpResponseData> GetUpcomingMemorials(
+    [HttpTrigger(AuthorizationLevel.Function, "get", Route = "upcoming-events")] HttpRequestData req,
+    FunctionContext executionContext)
+    {
+        _logger.LogInformation("GetUpcomingMemorials triggered");
+
+        try
+        {
+            var userId = JwtHelper.ExtractUserIdFromToken(req);
+
+            if (userId == Guid.Empty)
+            {
+                var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+                await unauthorizedResponse.WriteAsJsonAsync(new { error = "Authorization required" });
+                return unauthorizedResponse;
+            }
+
+            var query = new GetUpcomingMemorialsQuery
+            {
+                UserId = userId
+            };
+
+            var result = await _mediator.Send(query);
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(result);
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting upcoming memorials");
+
+            var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await response.WriteAsJsonAsync(new { error = "Something went wrong" });
             return response;
         }
     }

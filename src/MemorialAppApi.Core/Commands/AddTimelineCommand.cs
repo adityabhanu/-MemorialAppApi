@@ -10,4 +10,6 @@ public record AddTimelineCommand : IRequest<TimelineEntryDto>
     public DateTime? Date { get; init; }
     public string? Description { get; init; }
     public TimelineMediaDto? Media { get; init; }
+    public Guid? CreatedBy { get; init; }
+    public Guid? UpdatedBy { get; init; }
 }

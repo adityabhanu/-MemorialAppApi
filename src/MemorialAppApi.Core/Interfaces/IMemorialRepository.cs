@@ -16,4 +16,6 @@ public interface IMemorialRepository
     Task<MemorialTimeline?> GetTimelineByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<List<MemorialTimeline>> GetTimelinesByMemorialIdAsync(Guid memorialId, CancellationToken cancellationToken = default);
     Task<MemorialTimeline> UpdateTimelineAsync(MemorialTimeline timeline, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Memorial>> GetUpcomingMemorialsAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<bool> HasRecentContributionAsync(Guid userId, CancellationToken cancellationToken = default);
 }

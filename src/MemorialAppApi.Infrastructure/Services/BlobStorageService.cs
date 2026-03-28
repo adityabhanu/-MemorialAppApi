@@ -104,4 +104,40 @@ public class BlobStorageService : IBlobStorageService
             throw;
         }
     }
+
+    public async Task DeleteFileAsync(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return;
+
+        try
+        {
+            var uri = new Uri(url);
+            var segments = uri.AbsolutePath.TrimStart('/').Split('/', 2);
+
+            var containerName = segments[0];
+            var blobPath = segments.Length > 1 ? segments[1] : string.Empty;
+
+            var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+            var blobClient = containerClient.GetBlobClient(blobPath);
+
+            await blobClient.DeleteIfExistsAsync();
+        }
+        catch
+        {
+            // Optional: log error, but don't break flow
+        }
+    }
+
+    public async Task DeleteFilesAsync(IEnumerable<string> urls)
+    {
+        if (urls == null)
+            return;
+
+        var tasks = urls
+            .Where(u => !string.IsNullOrWhiteSpace(u))
+            .Select(DeleteFileAsync);
+
+        await Task.WhenAll(tasks);
+    }
 }

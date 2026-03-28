@@ -15,4 +15,6 @@ public interface IBlobStorageService
         string type, 
         string id, 
         CancellationToken cancellationToken = default);
+    Task DeleteFileAsync(string url);
+    Task DeleteFilesAsync(IEnumerable<string> urls);
 }

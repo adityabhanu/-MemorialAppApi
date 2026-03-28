@@ -22,13 +22,19 @@ public class UpdateMemorialCommandHandler : IRequestHandler<UpdateMemorialComman
         _logger.LogInformation("Updating memorial with ID: {MemorialId}", request.Id);
 
         var existing = await _memorialRepository.GetByIdWithTrackingAsync(request.Id, cancellationToken);
-        if (existing == null)
+
+        if (existing == null || existing.IsDeleted)
         {
-            _logger.LogWarning("Memorial not found with ID: {MemorialId}", request.Id);
             throw new NotFoundException($"Memorial with ID {request.Id} not found");
         }
 
-        // Update all memorial fields
+        // Authorization check
+        if (request.CreatedBy.HasValue && existing.CreatedBy != request.CreatedBy)
+        {
+            throw new UnauthorizedAccessException("You are not allowed to update this memorial");
+        }
+
+        // Update fields
         existing.ProfileType = request.ProfileType;
         existing.IsPublic = request.IsPublic;
         existing.FullName = request.FullName;
@@ -44,38 +50,32 @@ public class UpdateMemorialCommandHandler : IRequestHandler<UpdateMemorialComman
         existing.Hobbies = request.Hobbies;
         existing.LifeDetails = request.LifeDetails;
         existing.Media = request.Media;
-        if (request.CreatedBy.HasValue)
-        {
-            existing.CreatedBy = request.CreatedBy;
-        }
+
         existing.UpdatedAt = DateTime.UtcNow;
 
         var updated = await _memorialRepository.UpdateAsync(existing, cancellationToken);
-        var result = await _memorialRepository.GetByIdAsync(updated.Id, cancellationToken);
-
-        _logger.LogInformation("Memorial updated successfully with ID: {MemorialId}", updated.Id);
 
         return new MemorialDto
         {
-            Id = result!.Id,
-            ProfileType = result.ProfileType,
-            IsPublic = result.IsPublic,
-            FullName = result.FullName,
-            BirthDetails = result.BirthDetails,
-            PassingDetails = result.PassingDetails,
-            AppearanceAtBirth = result.AppearanceAtBirth,
-            Family = result.Family,
-            Visitors = result.Visitors,
-            ParentThoughts = result.ParentThoughts,
-            Letters = result.Letters,
-            Notes = result.Notes,
-            Personalities = result.Personalities,
-            Hobbies = result.Hobbies,
-            LifeDetails = result.LifeDetails,
-            Media = result.Media,
-            CreatedBy = result.CreatedBy,
-            CreatedAt = result.CreatedAt,
-            UpdatedAt = result.UpdatedAt
+            Id = updated.Id,
+            ProfileType = updated.ProfileType,
+            IsPublic = updated.IsPublic,
+            FullName = updated.FullName,
+            BirthDetails = updated.BirthDetails,
+            PassingDetails = updated.PassingDetails,
+            AppearanceAtBirth = updated.AppearanceAtBirth,
+            Family = updated.Family,
+            Visitors = updated.Visitors,
+            ParentThoughts = updated.ParentThoughts,
+            Letters = updated.Letters,
+            Notes = updated.Notes,
+            Personalities = updated.Personalities,
+            Hobbies = updated.Hobbies,
+            LifeDetails = updated.LifeDetails,
+            Media = updated.Media,
+            CreatedBy = updated.CreatedBy,
+            CreatedAt = updated.CreatedAt,
+            UpdatedAt = updated.UpdatedAt
         };
     }
 }

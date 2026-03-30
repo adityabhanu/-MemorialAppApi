@@ -113,7 +113,11 @@ public class BlobStorageService : IBlobStorageService
         try
         {
             var uri = new Uri(url);
-            var segments = uri.AbsolutePath.TrimStart('/').Split('/', 2);
+
+            // 🔥 Decode path
+            var decodedPath = Uri.UnescapeDataString(uri.AbsolutePath);
+
+            var segments = decodedPath.TrimStart('/').Split('/', 2);
 
             var containerName = segments[0];
             var blobPath = segments.Length > 1 ? segments[1] : string.Empty;
@@ -121,11 +125,13 @@ public class BlobStorageService : IBlobStorageService
             var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
             var blobClient = containerClient.GetBlobClient(blobPath);
 
-            await blobClient.DeleteIfExistsAsync();
+            var result = await blobClient.DeleteIfExistsAsync();
+
+            _logger.LogInformation("Delete result: {Result}, Blob: {Blob}", result.Value, blobPath);
         }
-        catch
+        catch (Exception ex)
         {
-            // Optional: log error, but don't break flow
+            _logger.LogWarning(ex, "Failed to delete blob: {Url}", url);
         }
     }
 

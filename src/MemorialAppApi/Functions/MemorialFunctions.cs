@@ -317,6 +317,87 @@ public class MemorialFunctions
         }
     }
 
+    [Function("UpdateTimeline")]
+    public async Task<HttpResponseData> UpdateTimeline(
+    [HttpTrigger(AuthorizationLevel.Function, "put", Route = "memorials/timeline/{id}")]
+    HttpRequestData req,
+    string id)
+    {
+        if (!Guid.TryParse(id, out var timelineId))
+            return req.CreateResponse(HttpStatusCode.BadRequest);
+
+        var dto = await req.ReadFromJsonAsync<TimelineEntryDto>();
+
+        var userId = JwtHelper.ExtractUserIdFromToken(req);
+
+        var command = new UpdateTimelineCommand
+        {
+            Id = timelineId,
+            Title = dto.Title,
+            Date = dto.Date,
+            Description = dto.Description,
+            Media = dto.Media,
+            UpdatedBy = userId
+        };
+
+        var result = await _mediator.Send(command);
+
+        var response = req.CreateResponse(HttpStatusCode.OK);
+        await response.WriteAsJsonAsync(result);
+        return response;
+    }
+
+    [Function("DeleteTimeline")]
+    public async Task<HttpResponseData> DeleteTimeline(
+    [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "memorials/timeline/{id}")]
+    HttpRequestData req,
+    string id)
+    {
+        try
+        {
+            if (!Guid.TryParse(id, out var timelineId))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { error = "Invalid id" });
+                return bad;
+            }
+
+            var userId = JwtHelper.ExtractUserIdFromToken(req);
+
+            var command = new DeleteTimelineCommand
+            {
+                Id = timelineId,
+                UpdatedBy = userId
+            };
+
+            await _mediator.Send(command);
+
+            return req.CreateResponse(HttpStatusCode.NoContent);
+        }
+        catch (FluentValidation.ValidationException vex)
+        {
+            var response = req.CreateResponse(HttpStatusCode.BadRequest);
+            await response.WriteAsJsonAsync(new
+            {
+                error = "Validation failed",
+                details = vex.Errors.Select(e => new
+                {
+                    field = e.PropertyName,
+                    message = e.ErrorMessage
+                })
+            });
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting timeline");
+
+            var response = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await response.WriteAsJsonAsync(new { error = "Something went wrong" });
+            return response;
+        }
+    }
+
     [Function("UpdateMedia")]
     public async Task<HttpResponseData> UpdateMedia(
         [HttpTrigger(AuthorizationLevel.Function, "patch", Route = "memorials/{id}/media")] HttpRequestData req,

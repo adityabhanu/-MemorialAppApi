@@ -62,5 +62,16 @@ namespace MemorialAppApi.Core.Helpers
 
             return result.Distinct().ToList();
         }
+
+        public static string CleanUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+                return url;
+
+            return url
+                .Trim()
+                .Replace("\"", "")   // 🔥 remove ALL quotes
+                .Replace("\\", "");  // 🔥 remove escape slashes
+        }
     }
 }

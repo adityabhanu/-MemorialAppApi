@@ -15,6 +15,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<MemorialTimeline> MemorialTimelines { get; set; } = null!;
     public DbSet<Event> Events { get; set; } = null!;
 
+    public DbSet<PasswordResetOtp> PasswordResetOtps { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -344,6 +346,38 @@ public class ApplicationDbContext : DbContext
             entity.HasIndex(e => e.MemorialId);
             entity.HasIndex(e => e.EventDate);
             entity.HasIndex(e => e.EventName);
+        });
+
+        modelBuilder.Entity<PasswordResetOtp>(entity =>
+        {
+            entity.ToTable("PasswordResetOtps");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Otp)
+                .IsRequired()
+                .HasMaxLength(10);
+
+            entity.Property(e => e.ExpiresAt)
+                .IsRequired();
+
+            entity.Property(e => e.IsUsed)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired()
+                .HasDefaultValueSql("GETUTCDATE()");
+
+            // 🚀 Important indexes
+            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.ExpiresAt);
+
+            entity.HasIndex(e => new { e.Email, e.Otp });
         });
     }
 }

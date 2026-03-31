@@ -30,9 +30,11 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<ICemeteryRepository, CemeteryRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IOtpRepository, OtpRepository>();
 
         // Services
         services.AddScoped<IBlobStorageService, BlobStorageService>();
+        services.AddScoped<IEmailService, SendGridEmailService>();
 
         return services;
     }

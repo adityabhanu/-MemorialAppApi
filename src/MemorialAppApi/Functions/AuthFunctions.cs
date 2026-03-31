@@ -219,4 +219,93 @@ public class AuthFunctions
             return response;
         }
     }
+
+    [Function("ForgotPassword")]
+    public async Task<HttpResponseData> ForgotPassword(
+    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "auth/forgot-password")] HttpRequestData req)
+    {
+        try
+        {
+            var dto = await req.ReadFromJsonAsync<ForgotPasswordDto>();
+
+            if (dto == null || string.IsNullOrWhiteSpace(dto.Email))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new { success = false, message = "Email is required" });
+                return bad;
+            }
+
+            await _mediator.Send(new ForgotPasswordCommand
+            {
+                Email = dto.Email
+            });
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new { success = true });
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ForgotPassword");
+
+            var error = req.CreateResponse(HttpStatusCode.InternalServerError);
+            await error.WriteAsJsonAsync(new
+            {
+                success = false,
+                message = "An error occurred while processing forgot password"
+            });
+
+            return error;
+        }
+    }
+
+    [Function("ResetPassword")]
+    public async Task<HttpResponseData> ResetPassword(
+    [HttpTrigger(AuthorizationLevel.Function, "post", Route = "auth/reset-password")] HttpRequestData req)
+    {
+        try
+        {
+            var dto = await req.ReadFromJsonAsync<ResetPasswordDto>();
+
+            if (dto == null ||
+                string.IsNullOrWhiteSpace(dto.Email) ||
+                string.IsNullOrWhiteSpace(dto.Otp) ||
+                string.IsNullOrWhiteSpace(dto.NewPassword))
+            {
+                var bad = req.CreateResponse(HttpStatusCode.BadRequest);
+                await bad.WriteAsJsonAsync(new
+                {
+                    success = false,
+                    message = "Email, OTP and NewPassword are required"
+                });
+                return bad;
+            }
+
+            await _mediator.Send(new ResetPasswordCommand
+            {
+                Email = dto.Email,
+                Otp = dto.Otp,
+                NewPassword = dto.NewPassword
+            });
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteAsJsonAsync(new { success = true });
+
+            return response;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in ResetPassword");
+
+            var error = req.CreateResponse(HttpStatusCode.BadRequest);
+            await error.WriteAsJsonAsync(new
+            {
+                success = false,
+                message = ex.Message // returns "Invalid or expired OTP"
+            });
+
+            return error;
+        }
+    }
 }
